@@ -28,8 +28,7 @@ class ArticleObserver
      */
     public function updated(Article $article)
     {
-        $article->slug=$instance->slugify($article->title);
-        $article->save();
+       
     }
 
     /**
