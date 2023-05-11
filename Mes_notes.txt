@@ -1,0 +1,719 @@
+-----------LES ROUTES-------------
+1-/
+Route::get('/', function () {
+    return view('welcome');
+});
+
+2-/
+Route::get( '/article/{id}/comment/{authore?}', function($id,$author='nickolas'){
+    return $author . ' a ecrit sur l\'article numero :' . $id;
+ }
+);
+
+
+3-/
+Route::prefix('admin')->group(function(){
+
+    Route::get('/users',function(){
+        return 'users list';
+});
+
+Route::get('/articles',function(){
+       return 'articles list';
+});
+
+Route::get('/categories',function(){
+ return 'articles categories';
+});
+
+});
+
+
+-----------LES REPONSES-------------
+fnction -> response, redirect,json
+
+json-/
+Route::get('/users', function () {
+    return response()-> json([
+        'name'=>'Dav',
+        'age'=>25
+    ]);
+});
+
+
+
+-----------LES VUES-------------
+1-/Quand la vue est dans un  dossier
+Route::get('/view',function(){
+    return view('folder.view');
+});
+
+2-/Recuperer un parametre et l'afficher dans la vue
+Route::get('/test/{id}',function($id){
+    return view('test',[
+        'id'=>$id
+    ]);
+});
+
+-----------LES MODELS-------------
+Creatrions de model
+- php artisan make:model Dog -m (pour creer notre model dog)
+-php artisan tinker ( ouverture du shell tinker  )
+-$dog = new App\Models\Dog(); ( Pour creer une instance de notre model )
+-$dog->name="lulu"; /ou/ $dog->age=5; (pour ajouter des données a notre tables)
+
+-----------LES MIGRATIONS-------------
+
+-php artisan migrate (pour faire effectuer les migration nouvellement ajouter)
+- php artisan make:migration create_dogs_table (pour creer une nouvelle table dog)
+
+1-/Rafraichir la BD
+php artisan migrate:refresh
+
+2-/Suppression table ou d'une migration
+php artisan migrate:reset (puis ensuite les supprimer a la main)
+
+
+-----------LES CONTROLEURS-------------
+1-/php artisan make:controller MainController(creation de nos controller)
+
+nb:-crtl+alt+i pr importer une classe quand on la surligne avec le curseur
+-les controller permettent de creer des classes avec des fonction pr les utiliser au niveau du routage
+
+2-/artisan make:controller UniqueActionController --invokable (controller a action unique)
+
+3-/php artisan make:controller ArticleControler --resource  (Qui creer un controller avec plusieur fonction predefinis)
+
+
+-----------LES REQUETS-------------
+nb:pr lutter contre les erreurs 419 dans nos formulaire on utilise "@csrf"
+
+-dd($request->input('email')); (Pour recuperer de facon brute la donnée inpute saisi par l'utilisateur)
+
+-Conditions sur les requetes
+public function store(Request $request)
+    {
+       if($request->isMethod('GET')){
+            die('GET');
+        }
+        die('NOT GET');
+   }
+
+-Pour vereifier si un inpt renvoye bien un element(tjr dans la fonction store)
+if($request->missing('name')){
+            die('NOT OK');
+        }
+        die('OK');
+
+
+-----------VALIDATION DES DONNES-------------
+-Pour definir les regles de validations d'une donnée d'un formulaire
+  
+public function store(Request $request)
+    {
+        $validationData =$request->validate([
+        'name'=>'required|min:5|max:255',
+        'email'=>'required|min:5|max:255|email'
+        ]);
+    }
+
+
+-----------GESTIONS DES ERREURS-------------
+-Gestion des erreurs: dans notre vue du formulaire dans notre section inserons 
+
+@if($errors ->any())
+     <div class="alert alert-danger">
+           <ul>
+             @foreach ($errors->all() as $error)
+                 <li>{{$error}}</li>
+             @endforeach
+
+           </ul>
+     </div>
+@endif
+
+-Si on veut que les erreurs soivent devant les champs ont insert cette ligne de code en dessous des input cible
+.cas de l'email
+        @enderror@error('email')
+             {{$message}}
+        @enderror
+
+
+
+-----------REQUETS PERSONNALISERS-------------
+php artisan make:request ArticleRequest (creer la requet personnaliser)
+
+-Puis dans notre requete personnaliser metre nos roles dans le rules
+public function rules()
+    {
+        return [
+        'name'=>'required|min:5|max:255',
+        'email'=>'required|min:5|max:255|email'
+        ];
+    }
+
+-Personnaliser les messages d'erreurs
+Tjr dans notre requet personnalise on creer une nouvelle fnction pr gerer cela
+public function messages(){
+        return[
+            'name.required'=>'le champ Name es requis',
+            'email.required'=>'le champ Email es requis'
+        ];
+    }
+
+-----------MIDLEWARE (pour cote securite)-------------
+localisation(http\middlewar)
+
+-Pour permettre un acces sans authentification
+Route::get('/test',function(){
+    return view('test');
+});->middleware('guest');
+
+
+-Pour permettre un acces avec authentification
+
+Route::get('/test',function(){
+    return view('test');
+})->middleware('auth.basic');
+
+-Creation de middleware personnalisé
+
+  php artisan make:middleware AuthMiddleware
+Ensuite il faut l'enregistrer au niveau du kernel 
+
+-Pour verifier si notre utilisateur est connecté
+dans notre middleware personnalise dans la fnction handle on ajoute (nb:importer Auth)
+   $user=Auth::user();
+   dd($user);
+
+-dans le cas ou i n'ya pas d'utilisateur
+         $user=Auth::user();
+         if(!$user){
+            return redirect('/');
+         }
+
+
+-----------STYLISER NOTRE APPLI-------------
+
+1-/bootstrap
+Copier tous les liens css et js sur leur site officiel
+
+2-/bootswatch(basee sur bootstrap pour rendre les theme un peu plus jolie)
+Choisir le theme souhaiter puis telecharger le fichier min.css puis l'inserer dans un fichier css dans notre dossier public
+
+3-/fontawesome(pour les icons)
+S'inscrire puis apres copier le script recu dans notre vue base dans les parti script
+
+
+
+-----------DDEBUT DU PROJET PROPREMENT DIT-------------
+-------------------------------------------------------
+-------------------------------------------------------
+-------------------------------------------------------
+
+
+
+----------- Creation de nos model et migration ---------------------
+
+
+1-/Artice
+-
+php artisan make:model Article -m
+nb:Dans la migration article le champs slug permet de determiner dans notre barre du navigateur un article bien précis.
+l'option 'nullable' permet de ne pas le rendre obligatoire puisque il sera calculé plutart
+-
+les seeders sont une alternative beaucoup plus rapide de tinker pour charger des donnés en base
+
+-
+faker nous permet de creer des donnée coherant
+ ph artisan db:seed --class=ArticleSeeder (pour voir le contenu genere par nos seeder) 
+
+
+----------- Recuperation des donnée en base de donnée et les aficher ---------------------
+
+-Dans notre controller Maincontroller
+
+public function home(){
+        return view('/home');
+    }
+
+    public function index(){
+        $articles=Article::all();//recupere toutes les articles de notre modele ou bien utiliser $articles=Article::paginate(4); quand il'ya trop d'element
+        return view('/articles',[
+          'articles'=>$articles   //affiche les resultat dans notre vue
+        ]);
+    }
+
+Ensuite il s'agira de l'affichage au niveau de notre vue articles
+
+           @foreach ($articles as $article)
+                <div class="col-md-6">
+                      <div class="card my-3">
+                         <div class="card-body">
+                            <h5 class="card-title">{{$article->title}}</h5>
+                            <p class="card-text">{{$article->subtile}}</p>
+                            <a href="#" class="btn btn-primary">                        
+                                Lire la suite
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                         </div>
+                      </div>
+                      <div class="d-flex justify-content-center mt-5">// utiliser pour le systeme de pagination
+                         {{$articles->links()}}
+                       </div>
+                </div>
+            @endforeach
+
+
+-----------Personnalisation de notre pagination ---------------------
+creation d'une vue pour notre personnalisation a savoir custom.blade.php(localisation:'views\vendor\pagination'
+
+-En precisant dans notre link la view de notre customisation on obtien notre pagination personnalisé
+ {{$articles->links('/vendor.pagination.custom')}}
+
+-fichier custom pr voir comment mettre en place une pagination
+
+
+
+------------Notion d'observeur ----------------
+-
+php artisan make:observer ArticleObserver --model=Article (pour creer un observer pour notre mode Article)localisation->app/observer
+
+-afin d'ecouter notre observer on doit l'inserer dans le appServiceProvider plus precisement dans la fonction boot()
+   public function boot()
+    {
+        Article::observe(ArticleObserver::class); //importer les 2 classes
+    }
+
+
+------------Les helpers ----------------
+
+
+
+
+
+------------Les Routes dynamique ----------------
+-
+Route::get('/articles',[MainController::class,'index'])->name('articles');
+Route::get('/articles/{slug}',[MainController::class,'show'])->name('article');//pour rediriger sur un article en particulier qui a un  slug en parametre
+
+-afin de rediriger sur notre article specifique, on met un lien vers notre view article qui prend un slug en parametre
+ <a href="{{route('article',$article->slug)}}" class="btn btn-primary">                        
+                                Lire la suite
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+
+-creation de notre fonction show pour retourner notre vuearticle 
+public function show($slug)
+    {
+          $article=Article::where('slug',$slug)->firstOrFail();
+          return view('article',[
+            'article'=>$article
+          ]);
+    }
+-creation de notre vue article
+@extends('base')
+
+@section('content')
+    <div class="shadow-lg p-4 mb-5 bg-body-tertiary rounded">
+        <h2 class="display-3 text-center">{{$article->title}}</h2>  //pour recuperer le titre du slug
+        <div class="display-3 text-center my-5">
+           <a class="btn btn-primary" href="{{route('articles')}}"> //un bouton pour rediriger sur notre page des articles
+                 <i class="fas fa-arrow-left"></i>
+                 Retour
+           </a>
+        </div>
+        <h5 class="text-center my-3 pt-3">{{$article->subtitle}}</h5> //pour recuperer le sous-titre du slug
+    </div>
+    <div class="container">
+         <p class="text-center">
+             {{$article->content}}  //pour recuperer le contenu du slug
+         </p>
+    </div>
+@endsection
+
+
+------------L'authentification ----------------
+-installation d'un package pour gerer le systeme d'authentification
+   composer require laravel/ui
+
+-Grace a cette installation on peut desormain executer la commande suivante
+  php artisan  ui vue --auth (choisir no)
+
+-Une fois cela creee on aura plus qu'a aller modifier, nos vue que laravel nous a cree dans le ficher Auth
+ changer juste le @extend('base')
+
+
+
+------------Personnalisation de fonctionnement des controlleur de auth ----------------
+-controller register
+protected $redirectTo = RouteServiceProvider::HOME; ( changer par le chemin souhaiter)
+
+-controller login
+protected $redirectTo = RouteServiceProvider::HOME; ( changer par le chemin souhaiter)
+
+-config de la nav-bar pour la conexion et la deconnexion
+            <ul class="navbar-nav ml-auto ">
+                @if(Auth::user())
+                    <li class="nav-item ">
+                        <form method='POST' action="/logout">
+                            @csrf
+                           <button type="submit" class="btn">Deconnexion</button>
+                        </form>
+                    </li>
+                @else
+                    <li class="nav-item ">
+                        <a class="nav-link " href="/login">Connexion</a>
+                    </li>
+                @endif               
+            </ul>  
+
+
+
+------------La gestion des roles ----------------
+
+-Ajouter premierement une nouvelle table nommee role  dans notre migration users
+   $table->string('role');
+
+-Une fois ajouté, faire un refresh
+php artisan migrate:refresh
+
+-Dans notre controller du ficher Auth registerController on insere dans la foction create
+protected function create(array $data)
+    {
+        return User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role'=>'USER'
+        ]);
+    }
+
+-Ensuite dans notre modele user on injecte le role recemment cree
+protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role'
+    ];
+
+
+-Pour creer des utilisateur admin ont va vreer des seeder qui vont le gerer
+      php artisan make:seed UserSeeder
+
+-Une fois notre seeder creer on va configurer notre UserSeeder
+public function run()
+    {
+        User::create([
+            'email'=>'razhkp@gmail.com',
+            'name'=>'Admin',
+            'password'=>Hash::make('toor'),
+            'role'=>'ADMIN'
+        ]);
+    }
+
+-Une fois fais on execute notre seeder UserSeeder
+    php artisan db:seed --class=UserSeeder 
+
+-En creant des constante pour les roles dans notre model User on peut centraliser tout cela
+   const USER_ROLE='USER';
+   const ADMIN_ROLE='ADMIN';
+
+-Ensuite on change les roles au niver du controller register et de notre seeder UserSeeder
+  'role'=>User::USER_ROLE 
+  'role'=>User::ADMIN_ROLE 
+-Reexecuter le seeder si on a fais des changement dessus
+
+
+------------Uilisation des middleware ----------------
+-Pour commencer on va ce creer un controller pr gerer la creation, la suppression, l'update etc
+ php artisan make:controller ArticleController -r
+
+-Creation du dossier article qui contiendra les divers vue
+  index,... etc
+
+-Creation d'un middleware pour la gestion de nos ressources
+ php artisan make:middleware AdminMiddleware 
+
+-Une fois creer il faut l'enregistrer dans le kernel 
+ 'admin' => \App\Http\Middleware\AdminMiddleware::class
+
+-Ensuite on l'attribut au fichier de rootage
+  Route::get('/admin/articles',[ArticleController::class,'index'])->middleware('admin');
+
+-Ensuite dans notre middleware on configure 
+public function handle(Request $request, Closure $next)
+    {
+        $user=Auth::user();
+
+        if(!$user){
+         return redirect()->route('login');   //s'il n'y a pas eu de connection
+        }
+        
+        if($user->role !==User::ADMIN_ROLE){
+            return redirect()->route('login');  //si le role est different de l'admin, rediriger vers le login
+        }
+        return $next($request);
+    }
+
+-Ne pas oublier d'aller change le chemin par defaut du middleware de laravel RedirectIfAuthificated
+ return redirect('/');
+
+
+
+------------Lister tous les articles(session admin) ----------------
+Section 7-lesson1
+
+
+------------Personnaliser l'affichage(forater la date) ----------------
+-Methode direct dans la vue
+<td>{{date('d-M-Y',strtotime($article->created_at))}}</td>
+
+-Methode en creeant une fonction dans le model article
+ public function dateFormatted(){
+        return date_format($this->created_at,'d-m-Y');
+    }
+}
+
+Puis l'appeler au niveau de notre article
+  <td>{{$article->dateFormatted()}}</td>
+
+
+------------Creation d'un nouvelle article ----------------
+
+
+
+
+------------CIntegration editeure de text ----------------
+
+
+
+------------La validation de données----------------
+ici il se question de rediriger le formilaire de creation sur elle meme en cas de non ajout de contenu
+-Pour se faire on va creer une request personnaliser
+ php artisan make:request ArticleRequest
+-Dans notre request on fait:
+ public function authorize()
+    {
+        return true;
+    }
+
+
+ public function rules()
+    {
+        return [
+            'title'=> 'required|min:6|max:150',
+            'subtitle'=> 'required|min:6|max:200',
+            'content'=> 'required'
+        ];
+    }
+-Puis ensuite dans notre controller on change la request par defaut par la notre 
+
+   /**
+     * Store a newly created resource in storage.
+     *
+     * @param  App\Http\Request\ArticleRequest  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(ArticleRequest $request)
+    {
+        $validated = $request->validated();
+        Article::create([
+            'title'=>$request->input('title'),
+            'subtitle'=>$request->input('subtitle'),
+            'content'=>$request->input('content'),
+        ]);
+        return redirect()->route('articles.index');
+    }
+-L'affichage d'erreur et la personnalisation de l'erreur se fait sur notre page html
+Exple de gestion d'erreur du titre
+
+                <div class="form-group">
+                      <label for="">Titre</label>
+                      <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" placeholder="Titre de votre article">
+                      @error('title')
+                      <span class="invalid-feedback" role="alert">
+                        <strong>{{$message}}</strong>
+                      </span>
+                      @enderror
+                </div>
+
+
+
+
+------------Implementation des messages flash----------------
+-Dans notre articleController au niveau du store on ajoute
+ return redirect()->route('articles.index')->with('success',"L'article a ete bien sauvegarder !");
+
+-Puis au niveau de notre vu index on ajoute une condition pour gerer le message
+
+@if ($message=Session::get('success'))
+      <div class="alert alert-success alert-block">
+        <button type="button" class="close" data-dismiss="alert">x</button>
+        <strong>{{$message}} </strong>  
+      </div>        
+    @endif
+
+-Pour faire encore mieux on peut copier la methode if dans notre fichier include et l'utilser partout ou on aura besoin
+1=creation fichier flash dans dossier include
+2=copier la methode if dans le fichier flash
+3=puis dans le fichier base on ajoute
+    <div class="container justify-content-center mt-3">
+      @include('includeElement.flash')
+    </div>
+
+
+------------Route binding----------------
+
+
+
+
+
+
+------------Suppression d'un article----------------
+-Route
+Route::delete('admin/articles/{article:id}/delete',[ArticleController::class,'delete'])->middleware('admin')->name('articles.delete');
+
+-controller fonction
+ public function delete(Article $article)
+    {
+        $article->delete();
+        return redirect()->route('articles.index')->with('success',"L'article a bien ete supprimer");
+    }
+-Action du bouton supprimer
+                  <form action="{{route('articles.delete',$article->id)}}" method="POST">
+                    @csrf
+                    @method("DELETE")
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                  </form> 
+
+
+------------Les modals----------------
+-Copier notre theme de modal voulu sur boostwatch
+
+-Ensuite l'implementer dans notre formulaire de suppression au niveau de l'index
+
+<form action="{{route('articles.delete',$article->id)}}" method="POST">
+                    <button type="button" class="btn btn-danger" onclick="document.getElementById('modal-open-{{$article->id}}').style.display='block'">Supprimer</button>
+
+                    @csrf
+                    @method("DELETE") <!---surchage de la methode post ---->                   
+                    <div class="modal" id="modal-open-{{$article->id}}">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">La suppression d'un element est definitive</font></font></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer" onclick="document.getElementById('modal-open-{{$article->id}}').style.display='none'>
+                              <span aria-hidden="true"></span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            <p><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Ete-vous sur de vouloir supprimer cet article?</font></font></p>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Oui</font></font></button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;" onclick="document.getElementById('modal-open-{{$article->id}}').style.display='none'">Annuler</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+
+------------Modification d'un article----------------
+*Partie fonction edit
+-Au niveau du controleur(implementer la methode edit)
+public function edit(Article $article)
+    {
+        return view('article.edit',[
+            "article"=>$article
+        ]);
+    }
+-Au niveau de la vu index dans le bouton
+a href="{{route('articles.edit',$article->id)}}" class="btn btn-warning mx-3">Editer</a>
+
+-Le routage
+Route::get('/admin/articles/{article}/edit',[ArticleController::class,'edit'])->middleware('admin')->name('articles.edit');
+
+-Creation de la vue edit
+@extends('base')
+
+@section('content')
+    <div class='container'>
+        <h1 class='text-center my-5'>Editer cet article</h1>
+        <form method="POST" action="{{route('articles.store')}}">
+            @csrf
+            <div class="col-12">
+                <div class="form-group">
+                      <label for="">Titre</label>
+                      <input type="text" value="{{$article->title}}" name="title" class="form-control @error('title') is-invalid @enderror" placeholder="Titre de votre article">
+                      @error('title')
+                      <span class="invalid-feedback" role="alert">
+                        <strong>{{$message}}</strong>
+                      </span>
+                      @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="">Sous-titre</label>
+                    <input type="text" value="{{$article->subtitle}}" name="subtitle" class="form-control @error('subtitle') is-invalid @enderror" placeholder="Sous-titre de votre article">
+                    <small class="form-text text-muted">Decrivez le contenu de votre article</small>
+                    @error('subtitle')
+                    <span class="invalid-feedback" role="alert">
+                      <strong>{{$message}}</strong>
+                    </span>
+                    @enderror
+              </div>
+
+              <div class="form-group">
+                <label for="">Contenu</label>
+                <textarea name="content"  class="form-control w-100 @error('content') is-invalid @enderror" placeholder="Sous-titre de votre article">
+                    {{$article->content}}
+                </textarea>
+                @error('content')
+                <span class="invalid-feedback" role="alert">
+                  <strong>{{$message}}</strong>
+                </span>
+                @enderror
+          </div>
+            </div>
+            <div class="d-flex justify-content-center mb-5 my-3">
+                <button class="btn btn-primary" type="submit">Modifier l'article</button>
+            </div>
+        </form>
+        
+    </div>
+@endsection
+
+
+
+*Partie fonction update
+-Function update
+public function update(ArticleRequest $request, Article $article)
+    {
+        $article->title=$request->input('title');
+        $article->subtitle=$request->input('subtitle');
+        $article->content=$request->input('content');
+        $article->save();
+        return redirect()->route('articles.index')->with('success',"L'article a ete bien ete modifie !");
+
+    }
+
+-Routage 
+Route::put('admin/articles/{article}/update',[ArticleController::class,'update'])->middleware('admin')->name('articles.update');
+
+-Au niveau de la vue edit
+<form method="POST" action="{{route('articles.update', $article->id)}}">
+            @method('PUT')
+
+NB:pour les mise a jour du content on fait comme suit
+<textarea name="content"  class="form-control w-100 @error('content') is-invalid @enderror" placeholder="Sous-titre de votre article">
+                    {{$article->content}}
+                </textarea>
+
+
+------------Utilisation d'un manager----------------
+
+
+
+
+
